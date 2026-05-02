@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0A0A0A;color:#F0F0F0;font-family:'Barlow',sans-serif;font-size:14px;overflow:hidden}
+.app{width:100%;max-width:420px;margin:0 auto;height:700px;position:relative;overflow:hidden;background:#0A0A0A}
+.page{position:absolute;inset:0;bottom:72px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;display:none}
+.page::-webkit-scrollbar{display:none}
+.page.active{display:block}
+.fullpage{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;display:none}
+.fullpage::-webkit-scrollbar{display:none}
+.fullpage.active{display:block}
+.nav{position:absolute;bottom:0;left:0;right:0;height:72px;background:#111;border-top:2px solid #2a2a2a;display:flex;z-index:9999}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;padding:6px 0}
+.nb svg{width:24px;height:24px;stroke:#555;fill:none;stroke-width:2;transition:stroke .2s}
+.nb span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#555;transition:color .2s}
+.nb.on svg{stroke:#F5C400}
+.nb.on span{color:#F5C400}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:700px;display:flex;flex-direction:column;justify-content:center;padding:32px 24px}
+.logo-area{text-align:center;margin-bottom:36px}
+.logo-spark{font-size:60px;display:block;margin-bottom:10px;filter:drop-shadow(0 0 24px rgba(245,196,0,.5))}
+.logo-name{font-family:'Barlow Condensed',sans-serif;font-size:46px;font-weight:900;color:#F0F0F0;letter-spacing:.04em}
+.logo-name b{color:#F5C400}
+.logo-tag{font-size:11px;color:#555;margin-top:4px;letter-spacing:.14em;text-transform:uppercase}
+.login-form{display:flex;flex-direction:column;gap:16px}
+.ilbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:5px}
+.ifield{background:#181818;border:1.5px solid #2a2a2a;border-radius:10px;padding:14px 15px;color:#F0F0F0;font-size:15px;font-family:'Barlow',sans-serif;outline:none;transition:.2s;width:100%}
+.ifield:focus{border-color:#F5C400}
+.ifield::placeholder{color:#3a3a3a}
+.ybtn{background:#F5C400;color:#000;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border:none;border-radius:10px;padding:15px;cursor:pointer;width:100%;display:block;transition:.15s}
+.ybtn:active{opacity:.85}
+.gbtn{background:transparent;color:#888;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1.5px solid #2a2a2a;border-radius:10px;padding:11px;cursor:pointer;width:100%;display:block;margin-top:8px;transition:.15s}
+.gbtn:hover{border-color:#F5C400;color:#F5C400}
+.err-box{background:#1e0808;border:1px solid #5a1212;border-radius:10px;padding:13px 15px;font-size:13px;color:#ff7777;display:none;text-align:center;font-weight:500}
+.err-box.show{display:block}
+
+/* ── SHARED ── */
+.hdr{padding:18px 16px 10px;display:flex;align-items:center;justify-content:space-between}
+.hdr-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#F0F0F0}
+.hdr-title b{color:#F5C400}
+.hdr-actions{display:flex;gap:8px;align-items:center}
+.hdr-btn{background:#181818;border:1px solid #2a2a2a;border-radius:8px;padding:7px 11px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:5px;font-family:'Barlow',sans-serif}
+.hdr-btn.red{color:#ff6b6b;border-color:#3a1a1a}
+.hdr-btn.red:hover{background:#1a0808;border-color:#ff4444}
+.hdr-btn.yellow{color:#F5C400;border-color:#3a2800}
+.hdr-btn.yellow:hover{background:#1a1600;border-color:#F5C400}
+.sec{padding:4px 16px 8px;display:flex;align-items:center;justify-content:space-between}
+.sec-t{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.sec-a{font-size:11px;font-weight:700;color:#F5C400;text-transform:uppercase;letter-spacing:.1em;cursor:pointer}
+.card{background:#181818;border-radius:14px;padding:14px;margin:0 14px 12px;border:1px solid #242424}
+.pbr{margin-bottom:11px}
+.pbr:last-child{margin-bottom:0}
+.pb-top{display:flex;justify-content:space-between;margin-bottom:5px}
+.pb-lbl{font-size:12px;font-weight:500;color:#aaa}
+.pb-val{font-size:12px;font-weight:700;color:#F5C400}
+.pb-bg{height:6px;background:#1e1e1e;border-radius:3px;overflow:hidden}
+.pb-fill{height:6px;background:#F5C400;border-radius:3px;width:0;transition:width .8s ease}
+
+/* ── HOME ── */
+.week-row{display:flex;gap:5px;padding:0 14px 12px}
+.dp{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.dc{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700}
+.dc.done{background:#F5C400;color:#000}
+.dc.today{background:#1a1600;color:#F5C400;border:1.5px solid #F5C400}
+.dc.rest{background:#181818;color:#444;border:1px solid #222}
+.dl{font-size:9px;color:#666;text-transform:uppercase}
+.rings-row{display:flex;align-items:center;justify-content:space-around;padding:10px 16px 14px}
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ring-outer{position:relative}
+.ring-svg{transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:#1e1e1e}
+.ring-fill{fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.ring-ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;line-height:1}
+.ring-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+.ring-sub{font-size:10px;color:#888;font-weight:600;text-align:center}
+.ring-divider{width:1px;height:80px;background:#222}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 12px}
+.stat{background:#181818;border-radius:10px;padding:11px 8px;text-align:center;border:1px solid #242424}
+.sv{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#F0F0F0}
+.sv em{color:#F5C400;font-style:normal;font-size:12px}
+.sl{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.now-card{background:#181818;border-radius:14px;margin:0 14px 12px;overflow:hidden;border:1px solid #2a2000}
+.pdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#F5C400;margin-right:6px;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.now-top{padding:12px 14px;border-bottom:1px solid #222}
+.now-tag{font-size:10px;font-weight:700;color:#F5C400;text-transform:uppercase;letter-spacing:.15em;margin-bottom:4px;display:flex;align-items:center}
+.now-nm{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900}
+.now-bot{display:grid;grid-template-columns:1fr 1fr 1fr;padding:10px 14px}
+.ns{text-align:center}
+.ns:not(:last-child){border-right:1px solid #222}
+.nv{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#F5C400}
+.nl{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+/* ── LIBRARY ── */
+.lib-search{padding:0 14px 10px}
+.lib-search input{width:100%;background:#181818;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px;color:#F0F0F0;font-size:13px;font-family:'Barlow',sans-serif;outline:none}
+.lib-search input::placeholder{color:#555}
+.lib-search input:focus{border-color:#F5C400}
+.filter-row{display:flex;gap:6px;padding:0 14px 12px;overflow-x:auto;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{background:#181818;border:1px solid #333;border-radius:18px;padding:6px 13px;font-size:11px;font-weight:600;color:#888;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:'Barlow',sans-serif;transition:.2s}
+.chip.on{background:#F5C400;border-color:#F5C400;color:#000}
+.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 16px}
+.ex-card{background:#181818;border-radius:12px;overflow:hidden;border:1px solid #242424;cursor:pointer;transition:.2s}
+.ex-card:active{opacity:.8}
+.ex-card.in-wkt{border-color:#F5C400;box-shadow:0 0 0 1px #F5C400}
+.ex-icon{height:72px;display:flex;align-items:center;justify-content:center;font-size:32px;background:#222}
+.ex-body{padding:10px}
+.ex-nm{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#F0F0F0;margin-bottom:5px;line-height:1.2}
+.ex-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:9px;background:#1e1e1e;color:#888;padding:2px 6px;border-radius:8px;font-weight:600;text-transform:uppercase}
+.tag.y{background:#1a1600;color:#F5C400}
+.tag.p{background:#1a0020;color:#c084fc}
+.ex-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.ex-info{font-size:10px;color:#666}
+.add-btn{width:26px;height:26px;border-radius:50%;background:#222;border:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;color:#888;transition:.2s;flex-shrink:0}
+.add-btn.on{background:#F5C400;border-color:#F5C400;color:#000}
+
+/* ── WORKOUT ── */
+.tmr-wrap{display:flex;justify-content:center;padding:4px 0 14px}
+.tmr-ring{position:relative;width:148px;height:148px}
+.tmr-svg{width:148px;height:148px;transform:rotate(-90deg)}
+.tmr-track{fill:none;stroke:#1e1e1e;stroke-width:8}
+.tmr-fill{fill:none;stroke:#F5C400;stroke-width:8;stroke-linecap:round}
+.tmr-ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.tmr-n{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:#F5C400;line-height:1}
+.tmr-s{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+.wkt-item{background:#181818;border-radius:10px;padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px;border:1px solid #222;cursor:pointer;transition:.2s}
+.wkt-item.cur{border-color:#F5C400}
+.wkt-item.dn{opacity:.4}
+.wkt-n{width:28px;height:28px;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:#777;flex-shrink:0}
+.wkt-item.cur .wkt-n{background:#F5C400;color:#000}
+.wkt-nm{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:#F0F0F0}
+.wkt-mt{font-size:11px;color:#777;margin-top:1px}
+.wkt-chk{width:20px;height:20px;border-radius:50%;border:1.5px solid #333;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.wkt-chk.dn{background:#F5C400;border-color:#F5C400}
+.goal-bar-wrap{background:#181818;border-radius:12px;padding:13px;margin:0 14px 11px;border:1px solid #242424}
+.goal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.goal-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.goal-badge{background:#1a1600;border:1px solid #F5C400;border-radius:20px;padding:3px 9px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:#F5C400}
+.goal-dots{display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap}
+.goal-dot{width:20px;height:20px;border-radius:50%;background:#1e1e1e;border:1.5px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:.3s}
+.goal-dot.filled{background:#F5C400;border-color:#F5C400;color:#000}
+.goal-txt{font-size:11px;color:#777;text-align:center;margin-top:3px}
+
+/* ── DETAIL ── */
+.detail{position:absolute;inset:0;background:#0A0A0A;z-index:800;overflow-y:auto;scrollbar-width:none;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.detail::-webkit-scrollbar{display:none}
+.detail.open{transform:translateX(0)}
+.d-hero{height:190px;background:#181818;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid #242424}
+.d-back{position:absolute;top:16px;left:14px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid #444;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.d-badge{position:absolute;top:16px;right:14px;font-size:9px;font-weight:900;padding:5px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.1em}
+.d-badge.y{background:#F5C400;color:#000}
+.d-badge.p{background:#7c3aed;color:#fff}
+.d-body{padding:18px 16px 40px}
+.d-name{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;margin-bottom:2px}
+.d-sub{font-size:12px;color:#888;margin-bottom:13px}
+.d-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.ds{background:#181818;border-radius:10px;padding:12px;text-align:center;border:1px solid #222}
+.dv{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#F5C400}
+.dl2{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.d-desc{font-size:13px;color:#aaa;line-height:1.6;margin-bottom:13px}
+
+/* ── POSTURE FLOW ── */
+.posture-flow{background:#111;border-radius:12px;border:1px solid #242424;margin-bottom:13px;overflow:hidden}
+.posture-flow-hdr{padding:11px 13px 8px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;justify-content:space-between}
+.posture-flow-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.posture-flow-sub{font-size:11px;color:#c084fc;font-weight:600}
+.posture-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:10px 8px}
+.pg-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:8px;cursor:pointer;transition:.2s;position:relative}
+.pg-item.done-p .pg-icon{position:relative}
+.pg-item.done-p .pg-icon::after{content:'✓';position:absolute;top:-4px;right:-6px;width:14px;height:14px;background:#F5C400;border-radius:50%;font-size:8px;color:#000;display:flex;align-items:center;justify-content:center;font-weight:900}
+.pg-item.active-p{background:#1a1600;border:1px solid #F5C400;border-radius:8px}
+.pg-item.upcoming{opacity:.35}
+.pg-icon{font-size:22px;display:inline-block}
+.pg-num{font-size:8px;font-weight:700;color:#555;font-family:'Barlow Condensed',sans-serif}
+.pg-item.active-p .pg-num{color:#F5C400}
+.pg-name{font-size:8px;color:#777;text-align:center;line-height:1.2;max-width:55px}
+.pg-item.active-p .pg-name{color:#ddd}
+.posture-progress{height:3px;background:#1e1e1e}
+.posture-prog-fill{height:3px;background:#F5C400;transition:width .4s ease}
+.current-posture{background:#1a1600;border:1.5px solid #F5C400;border-radius:10px;padding:14px;margin:10px 10px 0}
+.cp-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#F5C400;margin-bottom:5px}
+.cp-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#F0F0F0;margin-bottom:8px}
+.cp-steps{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.cp-step{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#bbb;line-height:1.4}
+.cp-step-num{width:18px;height:18px;border-radius:50%;background:#2a2000;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#F5C400;flex-shrink:0;margin-top:1px}
+.posture-nav{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-top:1px solid #1e1e1e;margin-top:10px}
+.pnav-btn{background:#1e1e1e;border:1px solid #333;border-radius:7px;padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:#aaa;cursor:pointer;transition:.2s;text-transform:uppercase;letter-spacing:.06em}
+.pnav-btn:hover{border-color:#F5C400;color:#F5C400}
+.pnav-btn:disabled{opacity:.3;cursor:default}
+.pnav-counter{font-size:12px;color:#666;font-weight:600}
+
+/* ── DIAGRAM ── */
+.diagram-wrap{background:#111;border-radius:12px;border:1px solid #242424;margin-bottom:13px;overflow:hidden}
+.diagram-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:11px 13px 8px;border-bottom:1px solid #1e1e1e}
+.diagram-steps{display:flex;gap:0;overflow-x:auto;padding:13px 11px;scrollbar-width:none}
+.diagram-steps::-webkit-scrollbar{display:none}
+.d-step{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;width:76px;position:relative}
+.d-step:not(:last-child)::after{content:'→';position:absolute;right:-9px;top:22px;font-size:13px;color:#444}
+.d-step-icon{width:48px;height:48px;border-radius:50%;background:#1e1e1e;border:2px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-size:20px;transition:.3s}
+.d-step.active .d-step-icon{border-color:#F5C400;background:#1a1600;box-shadow:0 0 10px rgba(245,196,0,.25)}
+.d-step-num{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:#555}
+.d-step.active .d-step-num{color:#F5C400}
+.d-step-lbl{font-size:9px;color:#666;text-align:center;line-height:1.3;max-width:70px}
+.d-step.active .d-step-lbl{color:#aaa}
+.diagram-pb{height:3px;background:#1e1e1e}
+.diagram-pb-fill{height:3px;background:#F5C400;width:0;transition:width .4s ease}
+.diagram-nav{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-top:1px solid #1e1e1e}
+.diag-nav-btn{background:#1e1e1e;border:1px solid #333;border-radius:7px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#aaa;cursor:pointer;transition:.2s;text-transform:uppercase}
+.diag-nav-btn:hover{border-color:#F5C400;color:#F5C400}
+.diag-nav-btn:disabled{opacity:.3;cursor:default}
+.diag-counter{font-size:11px;color:#666;font-weight:600}
+
+/* ── DONE / UPLOAD ── */
+.done-banner{background:linear-gradient(135deg,#1a1600,#2a2000);border:1.5px solid #F5C400;border-radius:12px;padding:16px;margin-bottom:12px;text-align:center}
+.done-banner-icon{font-size:38px;margin-bottom:5px}
+.done-banner-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;margin-bottom:3px}
+.done-banner-sub{font-size:12px;color:#888}
+.step-award{background:#0a1a2a;border:1px solid #1a3a5a;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.step-award-lbl{font-size:12px;color:#4A90D9;font-weight:600}
+.step-award-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#4A90D9}
+.upload-zone{border:2px dashed #333;border-radius:12px;padding:20px;text-align:center;cursor:pointer;position:relative;transition:.2s;margin-bottom:12px}
+.upload-zone:hover,.upload-zone.on{border-color:#F5C400;background:#1a1600}
+.upload-icon{width:40px;height:40px;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.u-txt strong{color:#F5C400;display:block;font-size:14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:2px}
+.u-txt{font-size:12px;color:#888}
+.u-inp{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.f-prev{display:none;align-items:center;gap:9px;background:#181818;border-radius:9px;padding:11px;margin-bottom:12px;border:1px solid #2a2000}
+.f-prev.on{display:flex}
+.f-thumb{width:34px;height:34px;border-radius:7px;background:#222;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.f-info{flex:1;min-width:0}
+.f-nm{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.f-sz{font-size:10px;color:#888}
+.f-rm{color:#555;cursor:pointer;font-size:18px;font-weight:700;flex-shrink:0}
+
+/* ── MODALS ── */
+.modal-ov{position:absolute;inset:0;background:rgba(0,0,0,.9);z-index:900;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.on{display:flex}
+.modal{background:#181818;border-radius:18px;padding:26px 22px;width:100%;max-width:300px;text-align:center}
+.modal-y{border:1px solid #2a2000}
+.modal-r{border:2px solid #ff4444}
+.modal-ico{font-size:48px;margin-bottom:9px}
+.modal-t{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#F5C400;margin-bottom:5px}
+.modal-t.red{color:#ff6b6b}
+.modal-s{font-size:12px;color:#aaa;margin-bottom:18px;line-height:1.6}
+.goalup-modal{background:#181818;border-radius:18px;padding:26px 22px;width:100%;max-width:300px;border:2px solid #F5C400;text-align:center;animation:popIn .4s ease}
+@keyframes popIn{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- ══════════ LOGIN ══════════ -->
+<div class="fullpage active" id="page-login">
+<div class="login-wrap">
+  <div class="logo-area">
+    <span class="logo-spark">⚡</span>
+    <div class="logo-name">APEX <b>FIT</b></div>
+    <div class="logo-tag">Train harder. Track smarter.</div>
+  </div>
+  <div class="login-form">
+    <div class="err-box" id="l-err">❌ Wrong email or password. Try again.</div>
+    <div>
+      <div class="ilbl">Email</div>
+      <input class="ifield" id="l-email" type="email" placeholder="Enter your email">
+    </div>
+    <div>
+      <div class="ilbl">Password</div>
+      <input class="ifield" id="l-pass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="ybtn" onclick="doLogin()">LOGIN →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ HOME ══════════ -->
+<div class="page" id="page-home">
+  <div class="hdr">
+    <div>
+      <div style="font-size:10px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.1em" id="greeting-time">Good Morning</div>
+      <div class="hdr-title" id="home-greeting">YUVVI <b>B.</b></div>
+    </div>
+    <div class="hdr-actions">
+      <div class="hdr-btn yellow" onclick="confirmReset()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+        Reset
+      </div>
+      <div class="hdr-btn red" onclick="doLogout()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </div>
+    </div>
+  </div>
+  <div class="week-row">
+    <div class="dp"><div class="dc done">M</div><div class="dl">Mon</div></div>
+    <div class="dp"><div class="dc done">T</div><div class="dl">Tue</div></div>
+    <div class="dp"><div class="dc done">W</div><div class="dl">Wed</div></div>
+    <div class="dp"><div class="dc today">T</div><div class="dl">Thu</div></div>
+    <div class="dp"><div class="dc rest">F</div><div class="dl">Fri</div></div>
+    <div class="dp"><div class="dc rest">S</div><div class="dl">Sat</div></div>
+    <div class="dp"><div class="dc rest">S</div><div class="dl">Sun</div></div>
+  </div>
+  <div class="rings-row">
+    <div class="ring-wrap">
+      <div class="ring-outer" style="width:150px;height:150px">
+        <svg class="ring-svg" width="150" height="150" viewBox="0 0 150 150">
+          <circle class="ring-track" cx="75" cy="75" r="62" stroke-width="11"/>
+          <circle class="ring-fill" id="goal-fill" cx="75" cy="75" r="62" stroke-width="11" stroke="#F5C400" stroke-dasharray="389.56" stroke-dashoffset="389.56"/>
+        </svg>
+        <div class="ring-ctr">
+          <div class="ring-val" id="goal-pct" style="font-size:32px;color:#F5C400">0%</div>
+          <div class="ring-lbl" style="color:#777">Goal</div>
+        </div>
+      </div>
+      <div class="ring-sub">Workout Done</div>
+    </div>
+    <div class="ring-divider"></div>
+    <div class="ring-wrap">
+      <div class="ring-outer" style="width:150px;height:150px">
+        <svg class="ring-svg" width="150" height="150" viewBox="0 0 150 150">
+          <circle class="ring-track" cx="75" cy="75" r="62" stroke-width="11"/>
+          <circle class="ring-fill" id="steps-fill" cx="75" cy="75" r="62" stroke-width="11" stroke="#4A90D9" stroke-dasharray="389.56" stroke-dashoffset="389.56"/>
+        </svg>
+        <div class="ring-ctr">
+          <div class="ring-val" id="steps-val" style="font-size:24px;color:#4A90D9">0</div>
+          <div class="ring-lbl" style="color:#4A90D9">Steps</div>
+        </div>
+      </div>
+      <div class="ring-sub" style="color:#4A90D9">Goal: 10,000</div>
+    </div>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><div class="sv" id="s-cal">0<em>kcal</em></div><div class="sl">Burned</div></div>
+    <div class="stat"><div class="sv" id="s-time">0<em>m</em></div><div class="sl">Duration</div></div>
+    <div class="stat"><div class="sv" id="s-sets">0<em>done</em></div><div class="sl">Exercises</div></div>
+  </div>
+  <div class="sec"><div class="sec-t">Now Active</div></div>
+  <div class="now-card">
+    <div class="now-top"><div class="now-tag"><span class="pdot"></span>Live</div><div class="now-nm" id="now-nm">Select an exercise</div></div>
+    <div class="now-bot">
+      <div class="ns"><div class="nv" id="now-sets">—</div><div class="nl">Sets</div></div>
+      <div class="ns"><div class="nv" id="now-reps">—</div><div class="nl">Reps</div></div>
+      <div class="ns"><div class="nv" id="now-rest">—</div><div class="nl">Rest</div></div>
+    </div>
+  </div>
+  <div class="sec"><div class="sec-t">Weekly Streaks</div></div>
+  <div class="card">
+    <div class="pbr"><div class="pb-top"><span class="pb-lbl">Push-Ups</span><span class="pb-val" id="pw-1">0%</span></div><div class="pb-bg"><div class="pb-fill" id="pf-1"></div></div></div>
+    <div class="pbr"><div class="pb-top"><span class="pb-lbl">Surya Namaskar</span><span class="pb-val" id="pw-2">0%</span></div><div class="pb-bg"><div class="pb-fill" id="pf-2"></div></div></div>
+    <div class="pbr"><div class="pb-top"><span class="pb-lbl">Squats</span><span class="pb-val" id="pw-3">0%</span></div><div class="pb-bg"><div class="pb-fill" id="pf-3"></div></div></div>
+    <div class="pbr" style="margin-bottom:0"><div class="pb-top"><span class="pb-lbl">HIIT</span><span class="pb-val" id="pw-4">0%</span></div><div class="pb-bg"><div class="pb-fill" id="pf-4"></div></div></div>
+  </div>
+  <div style="height:10px"></div>
+</div>
+
+<!-- ══════════ LIBRARY ══════════ -->
+<div class="page" id="page-library">
+  <div class="hdr"><div class="hdr-title">EXERCISE <b>LIBRARY</b></div></div>
+  <div class="lib-search"><input type="text" id="lib-q" placeholder="Search exercises..." oninput="renderLib()"></div>
+  <div class="filter-row" id="filter-row"></div>
+  <div class="ex-grid" id="ex-grid"></div>
+</div>
+
+<!-- ══════════ WORKOUT ══════════ -->
+<div class="page" id="page-workout">
+  <div class="hdr">
+    <div class="hdr-title">MY <b>WORKOUT</b></div>
+    <div class="hdr-actions">
+      <div class="hdr-btn yellow" onclick="confirmReset()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+        Reset
+      </div>
+      <div class="hdr-btn red" onclick="doLogout()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:10px;color:#F5C400;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Session Timer</div>
+    <div class="tmr-wrap">
+      <div class="tmr-ring">
+        <svg class="tmr-svg" viewBox="0 0 148 148">
+          <circle class="tmr-track" cx="74" cy="74" r="62"/>
+          <circle class="tmr-fill" id="tmr-fill" cx="74" cy="74" r="62" stroke-dasharray="389.56" stroke-dashoffset="0"/>
+        </svg>
+        <div class="tmr-ctr"><div class="tmr-n" id="tmr-n">00:00</div><div class="tmr-s">Elapsed</div></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="ybtn" id="tmr-btn" onclick="toggleTimer()">START</button>
+      <button class="gbtn" style="margin-top:0" onclick="resetTimer()">RESET</button>
+    </div>
+  </div>
+  <div class="sec"><div class="sec-t">Progress</div></div>
+  <div class="goal-bar-wrap">
+    <div class="goal-header">
+      <div class="goal-title">Exercises Completed</div>
+      <div class="goal-badge" id="goal-badge">Goal: 10</div>
+    </div>
+    <div class="goal-dots" id="goal-dots"></div>
+    <div style="height:5px;background:#1e1e1e;border-radius:3px;overflow:hidden;margin-bottom:5px">
+      <div style="height:5px;background:#F5C400;border-radius:3px;transition:width .6s ease;width:0" id="goal-bar-fill"></div>
+    </div>
+    <div class="goal-txt" id="goal-txt">0 / 10 — keep going!</div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="pbr" style="margin-bottom:0">
+      <div class="pb-top"><span class="pb-lbl">Steps Taken</span><span class="pb-val" style="color:#4A90D9" id="w-steps-lbl">0 / 10,000</span></div>
+      <div class="pb-bg"><div class="pb-fill" id="w-steps-bar" style="background:#4A90D9"></div></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-t">Exercises — <span id="done-c" style="color:#F5C400">0</span>/<span id="tot-c">0</span></div>
+    <div class="sec-a" id="wkt-add-btn">+ ADD FROM LIBRARY</div>
+  </div>
+  <div id="wkt-list" style="padding:0 14px"></div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- ══════════ DETAIL OVERLAY ══════════ -->
+<div class="detail" id="detail">
+  <div class="d-hero">
+    <div style="font-size:64px" id="d-icon">💪</div>
+    <div class="d-back" id="d-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F0F0F0" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></div>
+    <div class="d-badge y" id="d-badge">Beginner</div>
+  </div>
+  <div class="d-body">
+    <div class="d-name" id="d-name">Exercise</div>
+    <div class="d-sub" id="d-sub">Category</div>
+    <div class="d-stats">
+      <div class="ds"><div class="dv" id="d-sets">3</div><div class="dl2">Sets</div></div>
+      <div class="ds"><div class="dv" id="d-reps">15</div><div class="dl2">Reps</div></div>
+      <div class="ds"><div class="dv" id="d-rest">45s</div><div class="dl2">Rest</div></div>
+    </div>
+    <div class="d-desc" id="d-desc">Description.</div>
+    <!-- POSTURE FLOW -->
+    <div id="posture-flow-wrap" style="display:none">
+      <div class="posture-flow">
+        <div class="posture-flow-hdr">
+          <div class="posture-flow-title">12 Postures Sequence</div>
+          <div class="posture-flow-sub" id="pf-sub">Posture 1 of 12</div>
+        </div>
+        <div class="posture-grid" id="posture-grid"></div>
+        <div class="posture-progress"><div class="posture-prog-fill" id="posture-prog-fill"></div></div>
+        <div class="current-posture">
+          <div class="cp-label" id="cp-label">🟡 Current — Posture 1</div>
+          <div class="cp-name" id="cp-name">Pranamasana</div>
+          <div class="cp-steps" id="cp-steps"></div>
+          <button class="ybtn" id="posture-next-btn" onclick="nextPosture()" style="font-size:14px;padding:11px">NEXT POSTURE →</button>
+        </div>
+        <div class="posture-nav">
+          <button class="pnav-btn" id="pnav-prev" onclick="goPosture(-1)">← Back</button>
+          <span class="pnav-counter" id="pnav-counter">1 / 12</span>
+          <button class="pnav-btn" id="pnav-next" onclick="goPosture(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+    <!-- DIAGRAM -->
+    <div id="diagram-wrap" class="diagram-wrap" style="display:none">
+      <div class="diagram-title">How to do it — Step by Step</div>
+      <div class="diagram-steps" id="diag-steps"></div>
+      <div class="diagram-pb"><div class="diagram-pb-fill" id="diag-fill"></div></div>
+      <div class="diagram-nav">
+        <button class="diag-nav-btn" id="diag-prev" onclick="diagNav(-1)">← Prev</button>
+        <span class="diag-counter" id="diag-counter">Step 1 / 4</span>
+        <button class="diag-nav-btn" id="diag-next" onclick="diagNav(1)">Next →</button>
+      </div>
+    </div>
+    <!-- UPLOAD -->
+    <div id="upload-wrap" style="display:none;margin-bottom:12px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Upload Your Video</div>
+      <div class="upload-zone" id="u-zone">
+        <input type="file" accept="video/*" class="u-inp" id="u-inp" onchange="handleUpload(event)">
+        <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" width="20" height="20"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>
+        <div class="u-txt"><strong>Upload Workout Video</strong>Tap to select from your device</div>
+      </div>
+      <div class="f-prev" id="f-prev">
+        <div class="f-thumb"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C400" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+        <div class="f-info"><div class="f-nm" id="f-nm">video.mp4</div><div class="f-sz" id="f-sz">0 MB</div></div>
+        <div class="f-rm" id="f-rm">×</div>
+      </div>
+    </div>
+    <!-- START -->
+    <div id="start-wrap">
+      <button class="ybtn" onclick="startEx()" style="font-size:17px;padding:15px">▶ START EXERCISE</button>
+      <button class="gbtn" id="start-back-btn">BACK</button>
+    </div>
+    <!-- DONE -->
+    <div id="done-wrap" style="display:none">
+      <div class="done-banner">
+        <div class="done-banner-icon">💪</div>
+        <div class="done-banner-title">Exercise Complete?</div>
+        <div class="done-banner-sub">Tap Done to save your progress</div>
+      </div>
+      <div class="step-award">
+        <span class="step-award-lbl">👟 Steps you'll earn</span>
+        <span class="step-award-val" id="step-preview">+0 steps</span>
+      </div>
+      <button class="ybtn" id="done-main-btn" onclick="markExDone()" style="font-size:19px;padding:17px;letter-spacing:.1em">✓ DONE</button>
+      <button class="gbtn" onclick="closeDetail()">BACK</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-ov" id="modal">
+  <div class="modal modal-y">
+    <div class="modal-ico" id="modal-ico">🏆</div>
+    <div class="modal-t" id="modal-t">WELL DONE!</div>
+    <div class="modal-s" id="modal-msg">Keep crushing it!</div>
+    <button class="ybtn" onclick="closeModal()">CONTINUE</button>
+  </div>
+</div>
+<div class="modal-ov" id="goalup-modal">
+  <div class="goalup-modal">
+    <div style="font-size:50px;margin-bottom:9px">🎯</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#F5C400;margin-bottom:5px">GOAL REACHED!</div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:5px" id="goalup-msg">You smashed 10 exercises!</div>
+    <div style="font-size:13px;color:#F5C400;font-weight:700;margin-bottom:18px" id="goalup-next">New goal: 20 💪</div>
+    <button class="ybtn" onclick="closeGoalUp()">LET'S GO!</button>
+  </div>
+</div>
+<div class="modal-ov" id="reset-modal">
+  <div class="modal modal-r">
+    <div class="modal-ico">⚠️</div>
+    <div class="modal-t red">RESET PROGRESS?</div>
+    <div class="modal-s">This clears all completed exercises, steps and timer. Your account stays safe.</div>
+    <button class="ybtn" onclick="doReset()" style="background:#ff4444;color:#fff;margin-bottom:8px">YES, RESET</button>
+    <button class="gbtn" style="margin-top:0" onclick="closeResetModal()">CANCEL</button>
+  </div>
+</div>
+
+<!-- STEP FAB -->
+<div id="step-fab" style="display:none;position:absolute;bottom:84px;right:14px;z-index:500">
+  <button onclick="openStepInput()" style="width:50px;height:50px;border-radius:50%;background:#4A90D9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(74,144,217,.4)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </button>
+</div>
+<!-- STEP SHEET -->
+<div id="step-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:600;align-items:flex-end;justify-content:center">
+  <div style="background:#181818;border-radius:18px 18px 0 0;padding:26px 22px 34px;width:100%;border-top:2px solid #242424">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;margin-bottom:3px">Add Steps Manually</div>
+    <div style="font-size:12px;color:#888;margin-bottom:18px">Enter today's total steps from your health app</div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#777;margin-bottom:5px">Steps Today</div>
+    <input id="manual-steps-inp" type="number" min="0" max="99999" placeholder="e.g. 6500" style="width:100%;background:#111;border:1.5px solid #2a2a2a;border-radius:10px;padding:13px;color:#F0F0F0;font-size:20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;outline:none;margin-bottom:14px" onfocus="this.style.borderColor='#4A90D9'" onblur="this.style.borderColor='#2a2a2a'">
+    <div style="display:flex;gap:9px">
+      <button onclick="saveManualSteps()" style="flex:2;background:#4A90D9;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border:none;border-radius:10px;padding:13px;cursor:pointer">SAVE STEPS</button>
+      <button onclick="closeStepModal()" style="flex:1;background:transparent;color:#888;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;border:1.5px solid #2a2a2a;border-radius:10px;padding:13px;cursor:pointer">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<nav class="nav" id="main-nav" style="display:none">
+  <button class="nb on" id="nb-home"><svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg><span>Home</span></button>
+  <button class="nb" id="nb-workout"><svg viewBox="0 0 24 24"><line x1="5" y1="6" x2="19" y2="6"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/><circle cx="2.5" cy="6" r="1.5" fill="#555" stroke="none"/><circle cx="2.5" cy="12" r="1.5" fill="#555" stroke="none"/><circle cx="2.5" cy="18" r="1.5" fill="#555" stroke="none"/></svg><span>Workout</span></button>
+  <button class="nb" id="nb-library"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Library</span></button>
+</nav>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// ONLY TWO ACCOUNTS
+// ══════════════════════════════════════════
+const USERS = [
+  { email: 'yuvvi@apexfit.app',  password: 'yuvvi123', firstName: 'Yuvvi', lastName: 'B' },
+  { email: 'nirvi@apexfit.app',  password: 'nirvi123', firstName: 'Nirvi', lastName: 'B' },
+];
+
+const STEP_AWARDS={yoga:300,chest:120,legs:200,core:80,back:100,cardio:350,shoulders:100,arms:80,mobility:60,hiit:400};
+
+const SN_POSTURES=[
+  {name:'Pranamasana',sanskrit:'Prayer Pose',icon:'🙏',steps:['Stand at the front of your mat, feet together','Bring palms together at your chest in Namaste','Close your eyes and take a deep breath in','Relax shoulders down, centre yourself']},
+  {name:'Hasta Uttanasana',sanskrit:'Raised Arms Pose',icon:'🙆',steps:['Inhale deeply and raise both arms overhead','Gently arch your back, push hips slightly forward','Stretch up through fingertips, lengthen the spine','Look up toward your hands, keep neck soft']},
+  {name:'Hasta Padasana',sanskrit:'Hand to Foot Pose',icon:'🤸',steps:['Exhale and fold forward from the hips','Bring hands to the floor beside your feet','Keep legs as straight as possible, soften knees if needed','Let your head hang heavy, relax your neck']},
+  {name:'Ashwa Sanchalanasana',sanskrit:'Equestrian Pose',icon:'🏇',steps:['Inhale and step your right foot back into a lunge','Lower your right knee gently to the floor','Press left knee directly over the left ankle','Look forward and up, open the chest wide']},
+  {name:'Dandasana',sanskrit:'Stick Pose / Plank',icon:'📏',steps:['Exhale and step the left foot back to join the right','Form a straight plank — body in one line','Engage your core strongly, squeeze your glutes','Arms straight, wrists directly under shoulders']},
+  {name:'Ashtanga Namaskara',sanskrit:'Eight Limbed Pose',icon:'🪨',steps:['Lower knees, chest and chin to the floor','Eight points of contact: toes, knees, chest, chin, hands','Keep hips slightly raised off the floor','Hold or exhale gently in this position']},
+  {name:'Bhujangasana',sanskrit:'Cobra Pose',icon:'🐍',steps:['Inhale and slide forward, lifting the chest up','Straighten arms partially, elbows slightly bent','Roll shoulders back and down, open the chest','Look forward or slightly up, engage lower back']},
+  {name:'Adho Mukha Svanasana',sanskrit:'Downward Dog',icon:'🔻',steps:['Exhale, tuck toes and push hips up and back','Form an inverted V shape with your body','Press your chest toward your thighs, lengthen spine','Push heels toward the floor, arms fully straight']},
+  {name:'Ashwa Sanchalanasana',sanskrit:'Equestrian Pose (Left)',icon:'🏇',steps:['Inhale and step your left foot forward between hands','Lower your right knee to the floor','Align left knee directly over left ankle','Look forward, open chest and breathe deeply']},
+  {name:'Hasta Padasana',sanskrit:'Hand to Foot Pose',icon:'🤸',steps:['Exhale and step right foot forward beside the left','Fold forward, bringing hands to the floor','Straighten legs as much as comfortable','Relax your neck and let gravity do the work']},
+  {name:'Hasta Uttanasana',sanskrit:'Raised Arms Pose',icon:'🙆',steps:['Inhale and sweep arms up and back overhead','Arch gently backward, lengthening through the front body','Push hips slightly forward as you reach up','Feel the full stretch from toes to fingertips']},
+  {name:'Tadasana',sanskrit:'Mountain Pose',icon:'🧍',steps:['Exhale and bring arms back down to your sides','Stand tall, feet together, weight evenly distributed','Bring palms back to Namaste at the chest','Breathe deeply — one round is now complete! 🙏']},
+];
+
+const DIAGRAMS={
+  default:[{icon:'🧘',label:'Starting position'},{icon:'💪',label:'Engage muscles'},{icon:'🔄',label:'Perform movement'},{icon:'✅',label:'Return & repeat'}],
+  'Push-Ups':[{icon:'🤲',label:'Hands shoulder-width, plank'},{icon:'⬇️',label:'Lower chest to floor'},{icon:'💪',label:'Push back up'},{icon:'🔄',label:'Repeat, core tight'}],
+  'Wide Push-Up':[{icon:'🤲',label:'Hands wider than shoulders'},{icon:'⬇️',label:'Lower toward floor'},{icon:'💪',label:'Drive up through chest'},{icon:'🔄',label:'Repeat for reps'}],
+  'Diamond Push-Up':[{icon:'💎',label:'Diamond hands under chest'},{icon:'⬇️',label:'Lower slowly'},{icon:'💪',label:'Press up, squeeze triceps'},{icon:'🔄',label:'Repeat'}],
+  'Squats':[{icon:'🧍',label:'Feet shoulder-width'},{icon:'⬇️',label:'Push hips back and down'},{icon:'🦵',label:'Thighs parallel to floor'},{icon:'⬆️',label:'Drive through heels'}],
+  'Lunges':[{icon:'🧍',label:'Stand tall'},{icon:'🦵',label:'Step one foot forward'},{icon:'⬇️',label:'Lower back knee to floor'},{icon:'⬆️',label:'Push up, alternate'}],
+  'Jump Squats':[{icon:'🦵',label:'Squat position'},{icon:'⬇️',label:'Drop into deep squat'},{icon:'⚡',label:'Explode upward'},{icon:'🛬',label:'Land soft, repeat'}],
+  'Plank':[{icon:'🤲',label:'Forearms down, elbows under shoulders'},{icon:'🗿',label:'Body straight'},{icon:'💪',label:'Squeeze abs and glutes'},{icon:'⏱️',label:'Hold for time'}],
+  'Crunches':[{icon:'🛌',label:'Lie on back, knees bent'},{icon:'🤲',label:'Hands behind head'},{icon:'⬆️',label:'Curl up, exhale'},{icon:'⬇️',label:'Lower with control'}],
+  'Mountain Climbers':[{icon:'🤲',label:'Push-up position'},{icon:'🦵',label:'Drive knee to chest'},{icon:'🔄',label:'Switch legs fast'},{icon:'🏃',label:'Hips low, pace fast'}],
+  'Burpees':[{icon:'🧍',label:'Stand tall'},{icon:'⬇️',label:'Drop to floor, jump back'},{icon:'💪',label:'Push-up'},{icon:'⚡',label:'Jump feet in, explode up'}],
+  'High Knees':[{icon:'🧍',label:'Stand tall'},{icon:'🦵',label:'Drive knee to hip'},{icon:'🔄',label:'Switch legs fast'},{icon:'💨',label:'Pump arms, stay light'}],
+  'Superman':[{icon:'🛌',label:'Lie face down, arms forward'},{icon:'⬆️',label:'Lift arms, chest and legs'},{icon:'💪',label:'Hold 2 seconds'},{icon:'⬇️',label:'Lower slowly'}],
+  'Glute Bridge':[{icon:'🛌',label:'On back, knees bent'},{icon:'⬆️',label:'Push hips up'},{icon:'💪',label:'Squeeze glutes at top'},{icon:'⬇️',label:'Lower slowly'}],
+  'Jumping Jacks':[{icon:'🧍',label:'Feet together'},{icon:'⬆️',label:'Jump feet wide, arms up'},{icon:'⬇️',label:'Jump back together'},{icon:'🔄',label:'Repeat at pace'}],
+  'Tricep Dips':[{icon:'💺',label:'Hands on chair edge'},{icon:'⬇️',label:'Lower, elbows to 90°'},{icon:'💪',label:'Press up'},{icon:'🔄',label:'Repeat'}],
+};
+
+const EX=[
+  {id:1,name:'Surya Namaskar',icon:'☀️',cat:'yoga',sets:3,reps:'12 poses',rest:'60s',level:'Intermediate',desc:'The Sun Salutation — 12 postures flowing with breath. Complete each posture fully before moving to the next.',isPostureFlow:true},
+  {id:2,name:'Push-Ups',icon:'💪',cat:'chest',sets:3,reps:15,rest:'45s',level:'Beginner',desc:'Classic upper-body movement targeting chest, shoulders and triceps.'},
+  {id:3,name:'Wide Push-Up',icon:'🤲',cat:'chest',sets:4,reps:12,rest:'45s',level:'Intermediate',desc:'Wider grip emphasises the outer chest.'},
+  {id:4,name:'Diamond Push-Up',icon:'💎',cat:'chest',sets:3,reps:10,rest:'60s',level:'Advanced',desc:'Hands forming a diamond — maximum tricep isolation.'},
+  {id:5,name:'Squats',icon:'🦵',cat:'legs',sets:4,reps:20,rest:'60s',level:'Beginner',desc:'King of lower-body exercises. Drive hips back, chest tall.'},
+  {id:6,name:'Lunges',icon:'🏃',cat:'legs',sets:3,reps:16,rest:'45s',level:'Beginner',desc:'Step forward and lower back knee to the floor. Alternate legs.'},
+  {id:7,name:'Jump Squats',icon:'⚡',cat:'legs',sets:3,reps:12,rest:'90s',level:'Intermediate',desc:'Explosive squat variation for power.'},
+  {id:8,name:'Wall Sit',icon:'🧱',cat:'legs',sets:3,reps:'45s',rest:'45s',level:'Beginner',desc:'Back flat on wall, thighs parallel. Isometric quad hold.'},
+  {id:9,name:'Plank',icon:'🗿',cat:'core',sets:3,reps:'60s',rest:'30s',level:'Beginner',desc:'Push-up position, body straight from head to heels.'},
+  {id:10,name:'Crunches',icon:'🔄',cat:'core',sets:3,reps:20,rest:'30s',level:'Beginner',desc:'Curl upper body toward knees, exhale at the top.'},
+  {id:11,name:'Mountain Climbers',icon:'🏔️',cat:'core',sets:3,reps:30,rest:'45s',level:'Intermediate',desc:'Drive knees to chest alternately at pace.'},
+  {id:12,name:'Bicycle Crunch',icon:'🚲',cat:'core',sets:3,reps:20,rest:'30s',level:'Intermediate',desc:'Alternate elbow to opposite knee.'},
+  {id:13,name:'Leg Raises',icon:'🦿',cat:'core',sets:3,reps:15,rest:'30s',level:'Intermediate',desc:'Raise straight legs to 90°, lower slowly.'},
+  {id:14,name:'Superman',icon:'🦸',cat:'back',sets:3,reps:15,rest:'30s',level:'Beginner',desc:'Raise arms and legs simultaneously face down.'},
+  {id:15,name:'Bird Dog',icon:'🐦',cat:'back',sets:3,reps:12,rest:'30s',level:'Beginner',desc:'Extend opposite arm and leg on all fours.'},
+  {id:16,name:'Glute Bridge',icon:'🌉',cat:'back',sets:4,reps:20,rest:'30s',level:'Beginner',desc:'Push hips up squeezing glutes at the top.'},
+  {id:17,name:'Burpees',icon:'🔥',cat:'cardio',sets:3,reps:10,rest:'90s',level:'Advanced',desc:'Floor, push-up, jump feet in, explode upward.'},
+  {id:18,name:'High Knees',icon:'🏃',cat:'cardio',sets:3,reps:'60s',rest:'45s',level:'Beginner',desc:'Run in place driving knees to hip height.'},
+  {id:19,name:'Jump Rope',icon:'🪢',cat:'cardio',sets:4,reps:'2min',rest:'60s',level:'Beginner',desc:'Classic calorie burner. Stay light on feet.'},
+  {id:20,name:'Jumping Jacks',icon:'⭐',cat:'cardio',sets:3,reps:30,rest:'30s',level:'Beginner',desc:'Jump feet wide while raising arms overhead.'},
+  {id:21,name:'Warrior I',icon:'⚔️',cat:'yoga',sets:2,reps:'30s',rest:'15s',level:'Beginner',desc:'Front knee at 90°, arms overhead.'},
+  {id:22,name:'Warrior II',icon:'🛡️',cat:'yoga',sets:2,reps:'30s',rest:'15s',level:'Beginner',desc:'Wide stance, arms parallel to floor.'},
+  {id:23,name:'Downward Dog',icon:'🐕',cat:'yoga',sets:3,reps:'30s',rest:'20s',level:'Beginner',desc:'Inverted V. Press palms flat, lift hips up.'},
+  {id:24,name:'Cobra Pose',icon:'🐍',cat:'yoga',sets:3,reps:'20s',rest:'20s',level:'Beginner',desc:'Push chest up from hands under shoulders.'},
+  {id:25,name:'Shoulder Press',icon:'🏋️',cat:'shoulders',sets:3,reps:12,rest:'60s',level:'Beginner',desc:'Press weight overhead from shoulder height.'},
+  {id:26,name:'Pike Push-Up',icon:'🔱',cat:'shoulders',sets:3,reps:10,rest:'60s',level:'Intermediate',desc:'Bodyweight overhead press — hips high.'},
+  {id:27,name:'Tricep Dips',icon:'💺',cat:'arms',sets:3,reps:12,rest:'45s',level:'Beginner',desc:'Lower body bending elbows to 90° on a chair.'},
+  {id:28,name:'Chin-Ups',icon:'🔝',cat:'arms',sets:3,reps:8,rest:'90s',level:'Intermediate',desc:'Underhand pull-up hitting biceps and lats.'},
+  {id:29,name:'Hip Flexor Stretch',icon:'🦀',cat:'mobility',sets:2,reps:'45s',rest:'10s',level:'Beginner',desc:'Low lunge — sink hips forward.'},
+  {id:30,name:'Sprint Intervals',icon:'🏅',cat:'hiit',sets:6,reps:'20s',rest:'40s',level:'Advanced',desc:'All-out sprint 20s / rest 40s.'},
+  {id:31,name:'Tabata Squats',icon:'🔢',cat:'hiit',sets:8,reps:'20s',rest:'10s',level:'Intermediate',desc:'Squat at max effort 20s / rest 10s.'},
+  {id:32,name:'Burpee Tabata',icon:'💥',cat:'hiit',sets:8,reps:'20s',rest:'10s',level:'Advanced',desc:'Full burpees in Tabata format.'},
+  {id:33,name:'Kettlebell Swing',icon:'⚙️',cat:'hiit',sets:5,reps:15,rest:'60s',level:'Intermediate',desc:'Hip-hinge swing to chest height.'},
+];
+
+// ── STATE ──────────────────────────────────────────
+let workout=[],doneSet=new Set(),curFilter='all';
+let timerOn=false,timerSec=0,timerItv=null;
+let curExId=null,steps=0,totalDone=0,currentGoal=10;
+let weeklyDone={pushups:0,surya:0,squats:0,burpees:0};
+let diagStepsArr=[],diagIdx=0;
+let postureIdx=0,donePostures=new Set();
+const CIRC=389.56;
+
+// ── LOGIN ──────────────────────────────────────────
+function doLogin(){
+  const email=document.getElementById('l-email').value.trim().toLowerCase();
+  const pass=document.getElementById('l-pass').value;
+  const err=document.getElementById('l-err');
+  err.classList.remove('show');
+  const user=USERS.find(u=>u.email.toLowerCase()===email&&u.password===pass);
+  if(!user){err.classList.add('show');return;}
+  enterApp(user);
+}
+
+function enterApp(user){
+  // Set greeting
+  const hr=new Date().getHours();
+  const greet=hr<12?'Good Morning':hr<17?'Good Afternoon':'Good Evening';
+  document.getElementById('greeting-time').textContent=greet;
+  document.getElementById('home-greeting').innerHTML=
+    user.firstName.toUpperCase()+' <b>'+user.lastName.toUpperCase()+'.</b>';
+  // Show app
+  document.getElementById('page-login').classList.remove('active');
+  document.getElementById('main-nav').style.display='flex';
+  document.getElementById('step-fab').style.display='block';
+  nav('home');
+}
+
+function doLogout(){
+  clearState();
+  document.getElementById('main-nav').style.display='none';
+  document.getElementById('step-fab').style.display='none';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-login').classList.add('active');
+  document.getElementById('l-email').value='';
+  document.getElementById('l-pass').value='';
+  document.getElementById('l-err').classList.remove('show');
+}
+
+function clearState(){
+  workout=[];doneSet=new Set();steps=0;totalDone=0;currentGoal=10;
+  weeklyDone={pushups:0,surya:0,squats:0,burpees:0};
+  clearInterval(timerItv);timerOn=false;timerSec=0;
+  document.getElementById('tmr-n').textContent='00:00';
+  document.getElementById('tmr-btn').textContent='START';
+  document.getElementById('tmr-fill').style.strokeDashoffset='0';
+}
+
+function confirmReset(){document.getElementById('reset-modal').classList.add('on');}
+function closeResetModal(){document.getElementById('reset-modal').classList.remove('on');}
+function doReset(){clearState();closeResetModal();updateHome();renderWorkout();nav('home');}
+
+// ── NAV ────────────────────────────────────────────
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nb-'+page).classList.add('on');
+  if(page==='library')renderLib();
+  if(page==='workout')renderWorkout();
+  if(page==='home')updateHome();
+}
+document.getElementById('nb-home').onclick=()=>nav('home');
+document.getElementById('nb-workout').onclick=()=>nav('workout');
+document.getElementById('nb-library').onclick=()=>nav('library');
+document.getElementById('wkt-add-btn').onclick=()=>nav('library');
+document.getElementById('d-back').onclick=closeDetail;
+document.getElementById('start-back-btn').onclick=closeDetail;
+document.getElementById('f-rm').onclick=removeFile;
+
+// ── HOME ───────────────────────────────────────────
+function updateHome(){
+  const ep=currentGoal>0?Math.round(totalDone/currentGoal*100):0;
+  document.getElementById('goal-fill').style.strokeDashoffset=CIRC-(CIRC*Math.min(ep,100)/100);
+  document.getElementById('goal-pct').textContent=Math.min(ep,100)+'%';
+  const sp=Math.min(steps/10000,1);
+  document.getElementById('steps-fill').style.strokeDashoffset=CIRC-(CIRC*sp);
+  document.getElementById('steps-val').textContent=steps.toLocaleString();
+  document.getElementById('s-sets').innerHTML=totalDone+'<em>done</em>';
+  document.getElementById('s-cal').innerHTML=(totalDone*42)+'<em>kcal</em>';
+  document.getElementById('s-time').innerHTML=(timerSec>0?Math.round(timerSec/60):0)+'<em>m</em>';
+  const nxt=EX.find(e=>workout.includes(e.id)&&!doneSet.has(e.id));
+  if(nxt){document.getElementById('now-nm').textContent=nxt.name;document.getElementById('now-sets').textContent=nxt.sets;document.getElementById('now-reps').textContent=nxt.reps;document.getElementById('now-rest').textContent=nxt.rest;}
+  else{document.getElementById('now-nm').textContent=workout.length?'All done! 🎉':'Add an exercise';document.getElementById('now-sets').textContent='—';document.getElementById('now-reps').textContent='—';document.getElementById('now-rest').textContent='—';}
+  [{pw:'pw-1',pf:'pf-1',v:Math.min(weeklyDone.pushups*20,100)},{pw:'pw-2',pf:'pf-2',v:Math.min(weeklyDone.surya*25,100)},{pw:'pw-3',pf:'pf-3',v:Math.min(weeklyDone.squats*20,100)},{pw:'pw-4',pf:'pf-4',v:Math.min(weeklyDone.burpees*25,100)}]
+    .forEach(s=>{document.getElementById(s.pw).textContent=s.v+'%';document.getElementById(s.pf).style.width=s.v+'%';});
+}
+
+// ── GOAL BAR ───────────────────────────────────────
+function renderGoalBar(){
+  const pos=totalDone%10;
+  const pct=Math.round(pos/10*100);
+  document.getElementById('goal-badge').textContent='Goal: '+currentGoal;
+  document.getElementById('goal-bar-fill').style.width=pct+'%';
+  const dots=document.getElementById('goal-dots');
+  dots.innerHTML='';
+  for(let i=0;i<10;i++){
+    const d=document.createElement('div');
+    d.className='goal-dot'+(i<pos?' filled':'');
+    d.textContent=i<pos?'✓':'';
+    dots.appendChild(d);
+  }
+  document.getElementById('goal-txt').textContent=totalDone+' / '+currentGoal+(totalDone>0&&totalDone%currentGoal===0?' — GOAL REACHED! 🎯':' — keep going!');
+}
+
+// ── LIBRARY ────────────────────────────────────────
+function renderLib(){
+  const cats=['all','yoga','chest','legs','core','back','cardio','shoulders','arms','mobility','hiit'];
+  document.getElementById('filter-row').innerHTML=cats.map(c=>`<div class="chip${curFilter===c?' on':''}" data-c="${c}">${c==='all'?'All':c.charAt(0).toUpperCase()+c.slice(1)}</div>`).join('');
+  document.querySelectorAll('.chip').forEach(el=>el.onclick=function(){curFilter=this.dataset.c;renderLib();});
+  const q=(document.getElementById('lib-q').value||'').toLowerCase().trim();
+  let list=curFilter==='all'?EX:EX.filter(e=>e.cat===curFilter);
+  if(q)list=list.filter(e=>e.name.toLowerCase().includes(q));
+  document.getElementById('ex-grid').innerHTML=list.map(e=>{
+    const inW=workout.includes(e.id);
+    return`<div class="ex-card${inW?' in-wkt':''}" data-eid="${e.id}">
+      <div class="ex-icon">${e.icon}</div>
+      <div class="ex-body">
+        <div class="ex-nm">${e.name}</div>
+        <div class="ex-tags"><div class="tag${e.cat==='yoga'?' p':''}">${e.cat}</div><div class="tag y">${e.level}</div></div>
+        <div class="ex-footer"><div class="ex-info">${e.sets}×${e.reps}</div><div class="add-btn${inW?' on':''}" data-aid="${e.id}">${inW?'✓':'+'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.ex-card').forEach(el=>el.onclick=function(ev){if(ev.target.closest('.add-btn'))return;openDetail(+this.dataset.eid);});
+  document.querySelectorAll('.add-btn').forEach(el=>el.onclick=function(ev){ev.stopPropagation();const id=+this.dataset.aid;const i=workout.indexOf(id);if(i===-1)workout.push(id);else{workout.splice(i,1);doneSet.delete(id);}renderLib();});
+}
+
+// ── WORKOUT ────────────────────────────────────────
+function renderWorkout(){
+  renderGoalBar();
+  const sp=Math.min(Math.round(steps/100),100);
+  document.getElementById('w-steps-lbl').textContent=steps.toLocaleString()+' / 10,000';
+  document.getElementById('w-steps-bar').style.width=sp+'%';
+  document.getElementById('done-c').textContent=doneSet.size;
+  document.getElementById('tot-c').textContent=workout.length;
+  if(!workout.length){
+    document.getElementById('wkt-list').innerHTML=`<div style="text-align:center;padding:28px 14px;color:#666"><div style="font-size:38px;margin-bottom:8px">💪</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#F0F0F0;margin-bottom:5px">No exercises yet</div><div style="font-size:12px;margin-bottom:13px">Go to Library to add exercises</div><button class="ybtn" style="width:auto;padding:9px 22px;font-size:13px" id="go-lib">BROWSE LIBRARY</button></div>`;
+    document.getElementById('go-lib').onclick=()=>nav('library');return;
+  }
+  const first=workout.find(id=>!doneSet.has(id));
+  document.getElementById('wkt-list').innerHTML=workout.map((id,i)=>{
+    const e=EX.find(x=>x.id===id);if(!e)return'';
+    const dn=doneSet.has(id),cur=(id===first&&!dn);
+    return`<div class="wkt-item${cur?' cur':''}${dn?' dn':''}" data-wid="${id}">
+      <div class="wkt-n">${i+1}</div>
+      <div style="flex:1;min-width:0"><div class="wkt-nm">${e.name}${cur?' ⚡':''}</div><div class="wkt-mt">${e.sets} sets × ${e.reps} · Rest ${e.rest}</div></div>
+      <div class="wkt-chk${dn?' dn':''}">${dn?`<svg width="10" height="10" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`:''}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.wkt-item').forEach(el=>el.onclick=function(){openDetail(+this.dataset.wid);});
+}
+
+// ── TIMER ──────────────────────────────────────────
+function toggleTimer(){
+  timerOn=!timerOn;
+  document.getElementById('tmr-btn').textContent=timerOn?'PAUSE':'RESUME';
+  if(timerOn){timerItv=setInterval(()=>{timerSec++;const m=String(Math.floor(timerSec/60)).padStart(2,'0'),s=String(timerSec%60).padStart(2,'0');document.getElementById('tmr-n').textContent=m+':'+s;document.getElementById('tmr-fill').style.strokeDashoffset=389.56*(1-Math.min(timerSec/3600,1));},1000);}
+  else clearInterval(timerItv);
+}
+function resetTimer(){clearInterval(timerItv);timerOn=false;timerSec=0;document.getElementById('tmr-n').textContent='00:00';document.getElementById('tmr-btn').textContent='START';document.getElementById('tmr-fill').style.strokeDashoffset='0';}
+
+// ── POSTURE FLOW ───────────────────────────────────
+function renderPostureFlow(){
+  document.getElementById('posture-grid').innerHTML=SN_POSTURES.map((p,i)=>`
+    <div class="pg-item${donePostures.has(i)?' done-p':i===postureIdx?' active-p':i>postureIdx?' upcoming':''}" onclick="goPostureIdx(${i})">
+      <div class="pg-icon">${p.icon}</div>
+      <div class="pg-num">${i+1}</div>
+      <div class="pg-name">${p.name}</div>
+    </div>
+  `).join('');
+  const pct=Math.round(postureIdx/11*100);
+  document.getElementById('posture-prog-fill').style.width=pct+'%';
+  document.getElementById('pf-sub').textContent='Posture '+(postureIdx+1)+' of 12';
+  document.getElementById('pnav-counter').textContent=(postureIdx+1)+' / 12';
+  const cur=SN_POSTURES[postureIdx];
+  document.getElementById('cp-label').textContent='🟡 Posture '+(postureIdx+1)+': '+cur.sanskrit;
+  document.getElementById('cp-name').textContent=cur.icon+' '+cur.name;
+  document.getElementById('cp-steps').innerHTML=cur.steps.map((s,i)=>`
+    <div class="cp-step">
+      <div class="cp-step-num">${i+1}</div>
+      <div>${s}</div>
+    </div>
+  `).join('');
+  const isLast=postureIdx===11;
+  document.getElementById('posture-next-btn').textContent=isLast?'✓ COMPLETE SEQUENCE →':'NEXT POSTURE →';
+  document.getElementById('pnav-prev').disabled=postureIdx===0;
+  document.getElementById('pnav-next').disabled=postureIdx===11;
+}
+
+function nextPosture(){
+  donePostures.add(postureIdx);
+  if(postureIdx<11){
+    postureIdx++;
+    renderPostureFlow();
+    // Scroll current posture into view in grid
+    const grid=document.getElementById('posture-grid');
+    const active=grid.querySelector('.active-p');
+    if(active)active.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }else{
+    // All 12 done — hide posture flow, show done button
+    document.getElementById('posture-flow-wrap').style.display='none';
+    document.getElementById('done-wrap').style.display='block';
+    const award=STEP_AWARDS['yoga']||300;
+    document.getElementById('step-preview').textContent='+'+award+' steps';
+  }
+}
+
+function goPosture(dir){postureIdx=Math.max(0,Math.min(11,postureIdx+dir));renderPostureFlow();}
+function goPostureIdx(i){postureIdx=i;renderPostureFlow();}
+
+// ── DIAGRAM ────────────────────────────────────────
+function buildDiagram(name){
+  diagStepsArr=DIAGRAMS[name]||DIAGRAMS['default'];
+  diagIdx=0;renderDiagram();
+}
+function renderDiagram(){
+  document.getElementById('diag-steps').innerHTML=diagStepsArr.map((s,i)=>`
+    <div class="d-step${i===diagIdx?' active':''}" data-si="${i}">
+      <div class="d-step-icon">${s.icon}</div>
+      <div class="d-step-num">Step ${i+1}</div>
+      <div class="d-step-lbl">${s.label}</div>
+    </div>
+  `).join('');
+  document.querySelectorAll('.d-step').forEach(el=>el.onclick=function(){diagIdx=+this.dataset.si;renderDiagram();});
+  document.getElementById('diag-fill').style.width=(diagIdx/(diagStepsArr.length-1))*100+'%';
+  document.getElementById('diag-counter').textContent='Step '+(diagIdx+1)+' / '+diagStepsArr.length;
+  document.getElementById('diag-prev').disabled=diagIdx===0;
+  document.getElementById('diag-next').disabled=diagIdx===diagStepsArr.length-1;
+  const c=document.getElementById('diag-steps');
+  const a=c.querySelector('.active');
+  if(a)a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}
+function diagNav(dir){diagIdx=Math.max(0,Math.min(diagStepsArr.length-1,diagIdx+dir));renderDiagram();}
+
+// ── DETAIL ─────────────────────────────────────────
+function openDetail(id){
+  const e=EX.find(x=>x.id===id);if(!e)return;
+  curExId=id;postureIdx=0;donePostures=new Set();
+  document.getElementById('d-icon').textContent=e.icon;
+  const badge=document.getElementById('d-badge');badge.textContent=e.isPostureFlow?'Sun Salutation':e.level;badge.className='d-badge '+(e.isPostureFlow?'p':'y');
+  document.getElementById('d-name').textContent=e.name;
+  document.getElementById('d-sub').textContent=e.cat.charAt(0).toUpperCase()+e.cat.slice(1)+' · '+e.sets+' sets × '+e.reps;
+  document.getElementById('d-sets').textContent=e.sets;document.getElementById('d-reps').textContent=e.reps;document.getElementById('d-rest').textContent=e.rest;
+  document.getElementById('d-desc').textContent=e.desc;
+  document.getElementById('posture-flow-wrap').style.display='none';
+  document.getElementById('diagram-wrap').style.display='none';
+  document.getElementById('upload-wrap').style.display='none';
+  document.getElementById('start-wrap').style.display='block';
+  document.getElementById('done-wrap').style.display='none';
+  document.getElementById('f-prev').classList.remove('on');
+  document.getElementById('u-zone').classList.remove('on');
+  document.getElementById('u-inp').value='';
+  const btn=document.getElementById('done-main-btn');
+  btn.textContent='✓ DONE';btn.style.background='#F5C400';btn.style.color='#000';btn.style.pointerEvents='auto';
+  document.getElementById('detail').classList.add('open');
+}
+function closeDetail(){document.getElementById('detail').classList.remove('open');}
+
+function startEx(){
+  const e=EX.find(x=>x.id===curExId);if(!e)return;
+  document.getElementById('start-wrap').style.display='none';
+  if(e.isPostureFlow){
+    document.getElementById('posture-flow-wrap').style.display='block';
+    renderPostureFlow();
+  }else{
+    document.getElementById('diagram-wrap').style.display='block';
+    buildDiagram(e.name);
+    document.getElementById('done-wrap').style.display='block';
+    document.getElementById('step-preview').textContent='+'+(STEP_AWARDS[e.cat]||100)+' steps';
+  }
+}
+
+function markExDone(){
+  const e=EX.find(x=>x.id===curExId);if(!e)return;
+  const already=doneSet.has(curExId);
+  doneSet.add(curExId);
+  if(!workout.includes(curExId))workout.push(curExId);
+  if(!already){
+    totalDone++;
+    steps+=STEP_AWARDS[e.cat]||100;
+    if(e.cat==='chest')weeklyDone.pushups++;
+    if(e.isPostureFlow)weeklyDone.surya++;
+    if(e.cat==='legs')weeklyDone.squats++;
+    if(e.cat==='hiit')weeklyDone.burpees++;
+  }
+  const btn=document.getElementById('done-main-btn');
+  btn.textContent='✓ SAVED!';btn.style.background='#22c55e';btn.style.color='#fff';btn.style.pointerEvents='none';
+  updateHome();renderWorkout();
+  const hitGoal=!already&&totalDone>0&&totalDone%currentGoal===0;
+  setTimeout(()=>{
+    closeDetail();
+    if(hitGoal){
+      const old=currentGoal;currentGoal+=10;
+      document.getElementById('goalup-msg').textContent='You smashed '+old+' exercises! 🔥';
+      document.getElementById('goalup-next').textContent='New goal: '+currentGoal+' exercises 💪';
+      document.getElementById('goalup-modal').classList.add('on');
+    }else{
+      document.getElementById('modal-ico').textContent='🏆';
+      document.getElementById('modal-t').textContent='WELL DONE!';
+      document.getElementById('modal-msg').textContent=e.name+' complete! +'+(STEP_AWARDS[e.cat]||100)+' steps earned 👟';
+      document.getElementById('modal').classList.add('on');
+    }
+  },600);
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('on');nav('workout');}
+function closeGoalUp(){document.getElementById('goalup-modal').classList.remove('on');renderWorkout();nav('workout');}
+
+function handleUpload(ev){const f=ev.target.files[0];if(!f)return;document.getElementById('f-nm').textContent=f.name.length>22?f.name.slice(0,22)+'…':f.name;document.getElementById('f-sz').textContent=(f.size/1024/1024).toFixed(1)+' MB';document.getElementById('f-prev').classList.add('on');document.getElementById('u-zone').classList.add('on');}
+function removeFile(){document.getElementById('f-prev').classList.remove('on');document.getElementById('u-zone').classList.remove('on');document.getElementById('u-inp').value='';}
+function openStepInput(){document.getElementById('step-modal').style.display='flex';document.getElementById('manual-steps-inp').value=steps||'';setTimeout(()=>document.getElementById('manual-steps-inp').focus(),100);}
+function saveManualSteps(){steps=Math.max(0,Math.min(parseInt(document.getElementById('manual-steps-inp').value)||0,99999));updateHome();renderWorkout();closeStepModal();}
+function closeStepModal(){document.getElementById('step-modal').style.display='none';}
+</script>
+</body>
+</html>
