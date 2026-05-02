@@ -7,8 +7,10 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm install
+      - name: Set permissions
+        script: chmod +x node_modules/.bin/cap
       - name: Capacitor copy
-        script: npx cap copy android
+        script: node_modules/.bin/cap copy android
       - name: Set gradlew permission
         script: chmod +x android/gradlew
       - name: Build Android
